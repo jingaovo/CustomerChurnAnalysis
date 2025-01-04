@@ -1,5 +1,7 @@
 import pandas as pd
 import re
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
@@ -64,6 +66,24 @@ class DataProcessor:
     @staticmethod
     def convert_to_constant_format(column_name):
         return re.sub(r'([a-z])([A-Z])', r'\1_\2', column_name).upper()
+
+    # -----------------------------------------------------------------------------------------------------------------#
+    def plot_feature_distribution(self):
+        for feature in self.numerical_features:
+            plt.figure(figsize=(8, 6))
+            plt.hist(self.customer_data[feature], bins=30, alpha=0.7)
+            plt.title(f"Distribution of {feature}")
+            plt.xlabel(feature)
+            plt.ylabel('Frequency')
+            plt.show()
+
+    # -----------------------------------------------------------------------------------------------------------------#
+    def feature_importance(self):
+        correlation_matrix = self.customer_data.corr()
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', cbar=True)
+        plt.title('Feature Correlation Matrix')
+        plt.show()
 
     # -----------------------------------------------------------------------------------------------------------------#
     def get_customer_data(self):
