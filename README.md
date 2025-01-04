@@ -33,4 +33,4 @@ This will:
 - Perform hyperparameter tuning on the Random Forest model and save the best model.
 - Generate a PDF report that includes the data summary, EDA, model evaluation, and conclusion sections, along with any visualizations (e.g., histograms).
 
-Check `report.pdf` for an example report.
+Check [report.pdf](./report.pdf) for an example report.
