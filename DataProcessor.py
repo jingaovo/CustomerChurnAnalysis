@@ -10,14 +10,14 @@ TARGET_COLUMN = [Fields.CHURN]
 
 
 class DataProcessor:
-
     # -----------------------------------------------------------------------------------------------------------------#
-    def __init__(self):
-        self.customer_data = pd.read_csv('Customer-Churn.csv')
-        self.process_missing_data()
-        self.encoding_categorical_data()
-        self.split_data()
-        self.scale_features()
+    def __init__(self, file_path='Customer-Churn.csv'):
+        self.customer_data = pd.read_csv(file_path)
+        self.numerical_features = None
+        self.X_train = None
+        self.X_test = None
+        self.y_train = None
+        self.y_test = None
 
     # -----------------------------------------------------------------------------------------------------------------#
     def process_missing_data(self):
@@ -26,13 +26,14 @@ class DataProcessor:
         threshold = 30
         columns_to_drop = missing_percentage[missing_percentage > threshold].index
         self.customer_data = self.customer_data.drop(columns=columns_to_drop)
-        self.customer_data[Fields.TOTAL_CHARGES] = pd.to_numeric(self.customer_data[Fields.TOTAL_CHARGES],
-                                                                 errors='coerce')
-        numerical_features = self.customer_data.select_dtypes(include=['float64', 'int64']).columns
-        numerical_features = numerical_features.drop(BINARY_FEATURES)
+        self.customer_data[Fields.TOTAL_CHARGES] = pd.to_numeric(self.customer_data[Fields.TOTAL_CHARGES], errors='coerce')
+
+        self.numerical_features = self.customer_data.select_dtypes(include=['float64', 'int64']).columns
+        self.numerical_features = self.numerical_features.drop(BINARY_FEATURES)
+
         numerical_imputer = SimpleImputer(strategy='mean')
-        self.customer_data[numerical_features] = numerical_imputer.fit_transform(self.customer_data[numerical_features])
-        self.customer_data.dropna()
+        self.customer_data[self.numerical_features] = numerical_imputer.fit_transform(self.customer_data[self.numerical_features])
+        self.customer_data.dropna(inplace=True)
 
     # -----------------------------------------------------------------------------------------------------------------#
     def encoding_categorical_data(self):
@@ -40,9 +41,10 @@ class DataProcessor:
         categorical_features = [col for col in categorical_features if col != TARGET_COLUMN[0]]
         ohe = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
         encoded_features = ohe.fit_transform(self.customer_data[categorical_features])
-        encoded_df = pd.DataFrame(encoded_features, columns=ohe.get_feature_names_out(categorical_features),
-                                  index=self.customer_data.index)
+        encoded_df = pd.DataFrame(encoded_features, columns=ohe.get_feature_names_out(categorical_features), index=self.customer_data.index)
         self.customer_data = pd.concat([self.customer_data.drop(columns=categorical_features), encoded_df], axis=1)
+        
+        # Move target column to the last
         target_column = self.customer_data.pop(TARGET_COLUMN[0])
         self.customer_data[TARGET_COLUMN[0]] = target_column
 
@@ -55,16 +57,14 @@ class DataProcessor:
     # -----------------------------------------------------------------------------------------------------------------#
     def scale_features(self):
         scaler = StandardScaler()
-        self.X_train = scaler.fit_transform(self.X_train)
-        self.X_test = scaler.transform(self.X_test)
+        self.X_train[self.numerical_features] = scaler.fit_transform(self.X_train[self.numerical_features])
+        self.X_test[self.numerical_features] = scaler.transform(self.X_test[self.numerical_features])
 
     # -----------------------------------------------------------------------------------------------------------------#
+    @staticmethod
     def convert_to_constant_format(column_name):
         return re.sub(r'([a-z])([A-Z])', r'\1_\2', column_name).upper()
 
     # -----------------------------------------------------------------------------------------------------------------#
     def get_customer_data(self):
         return self.customer_data
-
-
-DataProcessor()
