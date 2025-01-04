@@ -22,6 +22,17 @@ class DataProcessor:
         self.y_test = None
 
     # -----------------------------------------------------------------------------------------------------------------#
+    def plot_feature_distribution(self):
+        for feature in self.numerical_features:
+            plt.figure(figsize=(8, 6))
+            plt.hist(self.customer_data[feature], bins=30, alpha=0.7)
+            plt.title(f"Distribution of {feature}")
+            plt.xlabel(feature)
+            plt.ylabel('Frequency')
+            plt.savefig(f"{feature}_histogram.png")
+            plt.close()
+
+    # -----------------------------------------------------------------------------------------------------------------#
     def process_missing_data(self):
         missing_summary = self.customer_data.isnull().sum()
         missing_percentage = (missing_summary / len(self.customer_data)) * 100
@@ -45,8 +56,6 @@ class DataProcessor:
         encoded_features = ohe.fit_transform(self.customer_data[categorical_features])
         encoded_df = pd.DataFrame(encoded_features, columns=ohe.get_feature_names_out(categorical_features), index=self.customer_data.index)
         self.customer_data = pd.concat([self.customer_data.drop(columns=categorical_features), encoded_df], axis=1)
-        
-        # Move target column to the last
         target_column = self.customer_data.pop(TARGET_COLUMN[0])
         self.customer_data[TARGET_COLUMN[0]] = target_column
 
@@ -66,16 +75,6 @@ class DataProcessor:
     @staticmethod
     def convert_to_constant_format(column_name):
         return re.sub(r'([a-z])([A-Z])', r'\1_\2', column_name).upper()
-
-    # -----------------------------------------------------------------------------------------------------------------#
-    def plot_feature_distribution(self):
-        for feature in self.numerical_features:
-            plt.figure(figsize=(8, 6))
-            plt.hist(self.customer_data[feature], bins=30, alpha=0.7)
-            plt.title(f"Distribution of {feature}")
-            plt.xlabel(feature)
-            plt.ylabel('Frequency')
-            plt.show()
 
     # -----------------------------------------------------------------------------------------------------------------#
     def feature_importance(self):

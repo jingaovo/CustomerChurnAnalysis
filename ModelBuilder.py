@@ -17,6 +17,17 @@ class ModelBuilder:
         self.models[name] = model
 
     # -----------------------------------------------------------------------------------------------------------------#
+    def fit_all_models(self):
+        """
+        Trains all models added to the ModelBuilder on the training data.
+        """
+        for name, model in self.models.items():
+            if not hasattr(model, "coef_") and not hasattr(model, "feature_importances_"):
+                print(f"Fitting model: {name}")
+                model.fit(self.X_train, self.y_train)
+                print(f"Model {name} has been fitted.")
+
+    # -----------------------------------------------------------------------------------------------------------------#
     def evaluate_model(self, model):
         model.fit(self.X_train, self.y_train)
         y_pred = model.predict(self.X_test)
